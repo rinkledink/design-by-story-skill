@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS — replace brand per product ============ */
+:root{
+  --brand:#2F5D8A;--brand-deep:#1E3F60;--brand-soft:#E6EEF6;
+  --bg:#F5F1EC;--surface:#FFF;--surface-2:#FAF7F3;
+  --ink:#1A1614;--ink-soft:#5B534D;--ink-mute:#8A827B;--line:#E7E1DA;--line-strong:#D6CFC5;
+  --ok:#2F7D4F;--ok-soft:#E5F1E8;--warn:#8C5410;--warn-soft:#F5EAD8;--err:#8B2C2C;--err-soft:#F5E5E5;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 10px 40px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Inter Tight",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.mono,.caps{font-family:"JetBrains Mono",monospace}
+.caps{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* ============ TOP BAR: device + story switchers ============ */
+.topbar{position:sticky;top:0;z-index:50;display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;padding:14px 20px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:7px 14px;border-radius:9px;font-weight:500;color:var(--ink-soft)}
+.seg button.active{background:var(--brand);color:#fff;box-shadow:var(--shadow-sm)}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.switch-label{display:flex;align-items:center;gap:8px}
+.story-select{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface);max-width:340px}
+
+/* ============ STAGE ============ */
+.stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;padding:28px 20px 60px}
+.views{flex:1;max-width:1280px;display:flex;justify-content:center}
+.view{transition:opacity .15s;width:100%}
+.view.hidden{display:none}.view.fading{opacity:0}
+
+/* Story panel */
+.story-panel{width:340px;flex:0 0 340px;position:sticky;top:84px;max-height:calc(100vh - 100px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-md);padding:18px}
+.story-panel[hidden]{display:none}
+.story-panel h2{font:600 20px/1.2 "Fraunces",serif;margin:6px 0 8px}
+.story-panel p{margin:0 0 14px;color:var(--ink-soft)}
+.story-panel ol,.story-panel ul{margin:6px 0 16px;padding-left:20px}
+.story-panel li{margin:4px 0}
+.story-panel .hint{color:var(--ink-mute);font-size:12px}
+.tags{display:flex;gap:6px;margin:0 0 10px}
+.tag{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-soft);text-transform:capitalize}
+.tag.pri-must{background:var(--brand);border-color:var(--brand);color:#fff}
+.tag.pri-should{background:var(--brand-soft);color:var(--brand-deep)}
+.acs{list-style:none;padding:0!important}
+.acs li{margin:0 0 8px;font-size:13px}
+.ac-id{display:inline-block;font-size:10px;color:var(--ink-mute);margin-right:6px}
+.story-panel .restart{border:1px solid var(--line-strong);background:var(--surface-2);border-radius:9px;padding:7px 12px;width:100%}
+
+/* Browser frame */
+.browser{width:100%;background:var(--surface);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;border:1px solid var(--line)}
+.browser-bar{background:#ECE7E1;padding:8px 10px 0}
+.tab{display:inline-flex;gap:8px;align-items:center;background:var(--surface);border-radius:8px 8px 0 0;padding:7px 14px;font-size:12px;max-width:260px}
+.omni{display:flex;align-items:center;gap:12px;background:var(--surface);padding:8px 10px;border-bottom:1px solid var(--line)}
+.lights{display:flex;gap:6px}.lights i{width:11px;height:11px;border-radius:50%;display:block}
+.lights .r{background:#EC6A5E}.lights .a{background:#F4BF4F}.lights .g{background:#61C554}
+.navbtns button{border:0;background:none;color:var(--ink-mute);font-size:16px;padding:0 4px}
+.address{flex:1;background:var(--surface-2);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--ink-soft)}
+.web-app{min-height:680px;display:flex;position:relative}
+
+/* Device frames */
+.frame-wrap{display:flex;justify-content:center}
+.phone,.tablet{background:#141414;padding:12px;box-shadow:var(--shadow-lg);position:relative}
+.phone{width:392px;height:min(844px,88vh);min-height:720px}
+.tablet{width:760px;height:min(1200px,92vh);min-height:800px;border-radius:40px;padding:14px}
+.screen{background:var(--surface);width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.tablet .screen{border-radius:28px}
+.statusbar{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
+.statusbar .r{display:flex;gap:7px;align-items:center}
+.app-body{flex:1;overflow:auto;display:flex;flex-direction:column;position:relative}
+.iphone{border-radius:54px}.iphone .screen{border-radius:44px}
+.iphone .statusbar,.tablet .statusbar{height:50px;flex:0 0 50px;align-items:flex-end;padding:0 30px 8px}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:98px;height:28px;background:#0a0a0a;border-radius:16px;z-index:6}
+.home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:120px;height:5px;border-radius:3px;background:#0d0d0d;opacity:.85;z-index:5}
+.android{border-radius:40px}.android .screen{border-radius:30px}
+.android .statusbar{height:36px;flex:0 0 36px;padding:0 22px;font-weight:500;font-family:system-ui,Roboto,sans-serif}
+.punch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#0a0a0a;z-index:6}
+.gesture{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:108px;height:4px;border-radius:2px;background:#0d0d0d;opacity:.7;z-index:5}
+
+/* Toast (rendered inside the active frame) */
+.toast{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-md);z-index:20;white-space:nowrap}
+
+/* ============ PRODUCT UI — replace the example below ============ */
+.sidebar{width:240px;flex:0 0 240px;background:var(--ink);color:#EDE7E0;padding:18px 12px}
+.sidebar .logo{font:600 18px "Fraunces",serif;padding:4px 10px 18px}
+.sidebar button{display:block;width:100%;text-align:left;border:0;background:none;color:inherit;padding:8px 10px;border-radius:8px}
+.sidebar button.active{background:rgba(255,255,255,.1)}
+.main{flex:1;padding:24px 28px}
+.main h1,.app-bar h1{font:600 26px "Fraunces",serif;margin:0}
+.app-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px}
+.android .app-bar h1{font:600 22px "Inter Tight",sans-serif}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);margin:8px 0}
+.list{padding:0 16px}
+.pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft)}
+.pill.done{background:var(--ok-soft);color:var(--ok)}
+.btn{border:0;background:var(--brand);color:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
+.btn.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.empty{padding:40px 20px;text-align:center;color:var(--ink-mute)}
+.stack{display:flex;gap:8px;margin:16px 0}
+.stack input{flex:1;font:inherit;padding:8px 12px;border:1px solid var(--line-strong);border-radius:10px}
+.row .l,.row .r{display:flex;align-items:center;gap:10px}
+.row.done .t{color:var(--ink-mute);text-decoration:line-through}
+.check{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line-strong);background:var(--surface);color:transparent;padding:0;font-size:13px;line-height:1}
+.check.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.av{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;font-weight:600;color:#fff;background:var(--brand-deep)}
+.icon-btn{border:0;background:none;color:var(--ink-mute);padding:4px 6px;border-radius:6px}
+.icon-btn:hover{background:var(--err-soft);color:var(--err)}
+.confirm{font-size:13px;color:var(--err)}
+.confirm button{border:0;background:none;font-weight:600;padding:2px 6px}
+.row select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.filters{margin:12px 0 4px}
+</style>
+</head>
+<body>
+
+<!-- =================== SWITCHERS =================== -->
+<div class="topbar">
+  <div class="seg" id="device-seg" role="group" aria-label="Device"><!-- rendered --></div>
+  <label class="switch-label"><span class="caps">Story</span>
+    <select class="story-select" id="story-select" onchange="selectStory(this.value)"><!-- rendered --></select>
+  </label>
+</div>
+
+<div class="stage">
+  <div class="views">
+    <!-- WEBSITE -->
+    <div id="web-view" class="view">
+      <div class="browser">
+        <div class="browser-bar"><div class="tab"><span id="web-tab-title">Product</span><span aria-hidden="true">✕</span></div></div>
+        <div class="omni">
+          <div class="lights"><i class="r"></i><i class="a"></i><i class="g"></i></div>
+          <div class="navbtns"><button aria-label="Back">‹</button><button aria-label="Forward">›</button><button aria-label="Home">⌂</button></div>
+          <div class="address mono">🔒 <span id="web-url">example.com/</span></div>
+        </div>
+        <div class="web-app" id="web-app"></div>
+      </div>
+    </div>
+
+    <!-- ANDROID -->
+    <div id="android-view" class="view hidden"><div class="frame-wrap"><div class="phone android"><div class="screen">
+      <div class="punch"></div>
+      <div class="statusbar"><span>9:41</span><span class="r">
+        <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor"><path d="M7.5 12 0 3.2A11.6 11.6 0 0 1 15 3.2z"/></svg>
+        <svg width="13" height="12" viewBox="0 0 13 12" fill="currentColor"><path d="M13 0v12H0z"/></svg>
+        <svg width="8" height="13" viewBox="0 0 8 13" fill="currentColor"><rect x="2.5" width="3" height="1.5" rx=".5"/><rect y="1.5" width="8" height="11.5" rx="1.5"/></svg>
+      </span></div>
+      <div class="app-body" id="android-app"></div>
+      <div class="gesture"></div>
+    </div></div></div></div>
+
+    <!-- IPHONE -->
+    <div id="iphone-view" class="view hidden"><div class="frame-wrap"><div class="phone iphone"><div class="screen">
+      <div class="island"></div>
+      <div class="statusbar"><span class="mono">9:41</span><span class="r">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y=".5" width="3" height="11.5" rx="1"/></svg>
+        <span class="mono" style="font-size:11px">5G</span>
+        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="3" stroke="currentColor"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx=".75" fill="currentColor"/></svg>
+      </span></div>
+      <div class="app-body" id="iphone-app"></div>
+      <div class="home-ind"></div>
+    </div></div></div></div>
+
+    <!-- IPAD (remove if unused, and drop 'ipad' from DEVICES) -->
+    <div id="ipad-view" class="view hidden"><div class="frame-wrap"><div class="tablet"><div class="screen">
+      <div class="statusbar"><span class="mono">9:41</span><span class="r mono" style="font-size:11px">Wi-Fi · 100%</span></div>
+      <div class="app-body" id="ipad-app"></div>
+      <div class="home-ind"></div>
+    </div></div></div></div>
+  </div>
+
+  <aside class="story-panel" id="story-panel" hidden aria-live="polite"><!-- rendered --></aside>
+</div>
+
+<!-- STORY TEXT — what each story says, kept apart from what it does (BEHAVIOUR
+     below). Keys are story ids. Shown read-only in the story panel. -->
+<script type="application/json" id="story-text">
+{
+  "S1": {
+    "title": "Add a task",
+    "story": "As an organiser, I can add a task, so that nothing gets forgotten.",
+    "priority": "must",
+    "status": "agreed",
+    "walkthrough": [
+      "Start with an empty list",
+      "Type a task and press Add",
+      "See it appear at the top"
+    ],
+    "ac": [
+      {
+        "id": "S1-AC1",
+        "text": "Given I have no tasks, when I open the list, then I see \"No tasks yet. Add your first one above.\""
+      },
+      {
+        "id": "S1-AC2",
+        "text": "Given I typed \"Book a photographer\", when I press Add, then it appears at the top of the list as Open"
+      },
+      {
+        "id": "S1-AC3",
+        "text": "Given the title is blank or only spaces, when I press Add, then nothing is added"
+      }
+    ],
+    "acNext": 3,
+    "outOfScope": [
+      "Due dates and reminders"
+    ],
+    "assumptions": [
+      "Duplicate titles are allowed"
+    ],
+    "questions": [
+      "Is there a maximum title length?"
+    ]
+  },
+  "S2": {
+    "title": "Complete a task",
+    "story": "As an organiser, I can tick off a task, so that I can see what still needs doing before the event.",
+    "priority": "must",
+    "status": "agreed",
+    "walkthrough": [
+      "Tap the circle on an open task",
+      "See it marked Done",
+      "Tap again to reopen it"
+    ],
+    "ac": [
+      {
+        "id": "S2-AC1",
+        "text": "Given an open task, when I tick it, then it shows as Done and is struck through"
+      },
+      {
+        "id": "S2-AC2",
+        "text": "Given a done task, when I tick it again, then it shows as Open"
+      },
+      {
+        "id": "S2-AC3",
+        "text": "Given any task, when I change its status, then a message confirms the new status"
+      }
+    ],
+    "acNext": 3,
+    "outOfScope": [],
+    "assumptions": [],
+    "questions": []
+  },
+  "S3": {
+    "title": "Filter by status",
+    "story": "As an organiser, I can show only open or done tasks, so that I can see what still needs doing without finished work in the way.",
+    "priority": "could",
+    "status": "in review",
+    "walkthrough": [
+      "Choose Open",
+      "Only open tasks show",
+      "Tick one off: it leaves the list",
+      "Choose Done to find it again"
+    ],
+    "ac": [
+      {
+        "id": "S3-AC1",
+        "text": "Given tasks with both statuses, when I choose Open, then only open tasks show"
+      },
+      {
+        "id": "S3-AC2",
+        "text": "Given the Open filter is on, when I tick a task off, then it leaves the list"
+      },
+      {
+        "id": "S3-AC3",
+        "text": "Given no tasks match the filter, when I choose it, then I see \"Nothing open right now.\" or \"Nothing done right now.\""
+      },
+      {
+        "id": "S3-AC4",
+        "text": "Given the filter bar is showing, when a task's status changes, then the counts on All, Open and Done update"
+      }
+    ],
+    "acNext": 4,
+    "outOfScope": [],
+    "assumptions": [],
+    "questions": [
+      "Should the chosen filter be remembered next time?"
+    ]
+  },
+  "S4": {
+    "title": "Delete a task",
+    "story": "As an organiser, I can delete a task I no longer need, so that cancelled work doesn't look outstanding.",
+    "priority": "should",
+    "status": "in review",
+    "walkthrough": [
+      "Press ✕ on a task",
+      "Confirm with Delete",
+      "Try again and press Cancel instead"
+    ],
+    "ac": [
+      {
+        "id": "S4-AC1",
+        "text": "Given a task, when I press delete, then I'm asked to confirm before anything is removed"
+      },
+      {
+        "id": "S4-AC2",
+        "text": "Given I'm asked to confirm, when I press Cancel, then the task is unchanged"
+      },
+      {
+        "id": "S4-AC3",
+        "text": "Given I'm asked to confirm, when I press Delete, then the task is removed from the list"
+      }
+    ],
+    "acNext": 3,
+    "outOfScope": [
+      "Undo after deleting"
+    ],
+    "assumptions": [],
+    "questions": [
+      "If a deleted task was assigned to someone, are they told?"
+    ]
+  },
+  "S5": {
+    "title": "Assign a task",
+    "story": "As an organiser, I can assign a task to a teammate, so that everyone knows who owns it.",
+    "priority": "should",
+    "status": "draft",
+    "walkthrough": [
+      "Pick a teammate from the menu on a task",
+      "Their initials appear on the task",
+      "Pick \"Unassigned\" to clear it"
+    ],
+    "ac": [
+      {
+        "id": "S5-AC1",
+        "text": "Given an unassigned task, when I choose a teammate, then their initials show on the task"
+      },
+      {
+        "id": "S5-AC2",
+        "text": "Given an assigned task, when I choose Unassigned, then the initials are removed"
+      },
+      {
+        "id": "S5-AC3",
+        "text": "Given any task, when I assign it, then a message names who it was assigned to"
+      }
+    ],
+    "acNext": 3,
+    "outOfScope": [],
+    "assumptions": [
+      "Only the organiser assigns tasks"
+    ],
+    "questions": [
+      "Can a task have more than one owner?"
+    ]
+  }
+}
+</script>
+
+<script>
+/* =================== DEVICES =================== */
+// id → switcher label. Remove entries (and their frame markup) you don't need.
+const DEVICES = { web: 'Website', android: 'Android', iphone: 'iPhone', ipad: 'iPad' };
+const HOME = { web: 'list', android: 'list', iphone: 'list', ipad: 'list' };
+
+/* =================== DATA — replace with the product's model =================== */
+const PEOPLE = {
+  SR: 'Sam Rivera', AK: 'Ana Kovač', JO: 'Jun Okafor', ML: 'Mia Lindqvist',
+};
+const DEFAULT_SEED = () => ({
+  user: { name: 'Sam Rivera', initials: 'SR' },
+  tasks: [
+    { id: 't1', title: 'Order new signage', done: false, who: null },
+    { id: 't2', title: 'Book the venue', done: true, who: 'SR' },
+    { id: 't3', title: 'Send invitations', done: false, who: null },
+    { id: 't4', title: 'Confirm catering numbers', done: false, who: 'AK' },
+    { id: 't5', title: 'Print name badges', done: true, who: null },
+  ],
+});
+
+/* =================== STORIES =================== */
+// A story = its text (#story-text) + its behaviour here
+// (code only): which devices it applies to, where each device starts, a seed()
+// that returns fresh data, and the features it switches on.
+//
+// Features are OFF unless the selected story lists them: their controls are
+// not rendered and their handlers are no-ops (see can()). "All stories" turns
+// on every story's features: the whole product.
+const BEHAVIOUR = {
+  S1: {
+    devices: ['web', 'android', 'iphone', 'ipad'],
+    start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
+    features: ['add'],
+    seed: () => ({ ...DEFAULT_SEED(), tasks: [] }),
+  },
+  S2: {
+    devices: ['web', 'android', 'iphone', 'ipad'],
+    start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
+    features: ['complete'],
+    seed: DEFAULT_SEED,
+  },
+  S3: {
+    devices: ['web', 'android', 'iphone', 'ipad'],
+    start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
+    features: ['filter', 'complete'],
+    seed: DEFAULT_SEED,
+  },
+  S4: {
+    devices: ['web', 'android', 'iphone', 'ipad'],
+    start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
+    features: ['delete'],
+    seed: DEFAULT_SEED,
+  },
+  S5: {
+    devices: ['web'],  // only exclusion: assigning work is a desk job, done by the organiser on the website
+    start: { web: 'list' },
+    features: ['assign'],
+    seed: () => ({ ...DEFAULT_SEED(), tasks: DEFAULT_SEED().tasks.map(t => ({ ...t, who: null })) }),
+  },
+};
+
+const STORY_TEXT = JSON.parse(document.getElementById('story-text').textContent);
+const TEXT_DEFAULTS = { priority: 'should', status: 'draft', walkthrough: [], ac: [], outOfScope: [], assumptions: [], questions: [] };
+let STORIES = [], ALL_FEATURES = new Set();
+function buildStories(){
+  STORIES = Object.entries(STORY_TEXT)
+    .filter(([id]) => BEHAVIOUR[id] || console.error(`${id} has story text but no BEHAVIOUR entry`))
+    .map(([id, text]) => ({ id, ...BEHAVIOUR[id], ...TEXT_DEFAULTS, ...text }));
+  ALL_FEATURES = new Set(STORIES.flatMap(s => s.features));
+}
+buildStories();
+
+/* =================== STATE =================== */
+let state = DEFAULT_SEED();
+const ui = {};                      // per-device UI state: { screen, ... }
+let currentDevice = 'web';
+let currentStory = null;            // null = "All stories"
+
+function resetUi(story){
+  Object.keys(DEVICES).forEach(d => ui[d] = { screen: (story && story.start[d]) || HOME[d], filter: 'all', confirmDelete: null });
+}
+
+// Feature gate: true when the selected story switches this feature on, or for
+// any story's feature under "All stories".
+const can = feature => currentStory ? currentStory.features.includes(feature) : ALL_FEATURES.has(feature);
+
+/* =================== PRODUCT SCREENS — replace the example =================== */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// Every story-specific control is wrapped in can(...) so it only exists when
+// its story is selected.
+function taskRow(device, t){
+  const ui_ = ui[device];
+  const check = can('complete')
+    ? `<button class="check ${t.done ? 'on' : ''}" aria-pressed="${t.done}" aria-label="Mark ${esc(t.title)} ${t.done ? 'open' : 'done'}" onclick="toggleTask('${device}','${t.id}')">✓</button>` : '';
+  const who = t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
+  const assign = can('assign') && device === 'web'
+    ? `<select aria-label="Assign ${esc(t.title)}" onchange="assignTask('${device}','${t.id}', this.value)">
+        <option value="">Unassigned</option>${Object.entries(PEOPLE).map(([k, n]) => `<option value="${k}" ${t.who === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}
+       </select>` : '';
+  const del = !can('delete') ? ''
+    : ui_.confirmDelete === t.id
+      ? `<span class="confirm">Delete? <button onclick="deleteTask('${device}','${t.id}')">Delete</button><button style="color:var(--ink-soft)" onclick="askDelete('${device}',null)">Cancel</button></span>`
+      : `<button class="icon-btn" aria-label="Delete ${esc(t.title)}" onclick="askDelete('${device}','${t.id}')">✕</button>`;
+  return `<div class="row ${t.done ? 'done' : ''}">
+    <span class="l">${check}<span class="t">${esc(t.title)}</span></span>
+    <span class="r">${who}${assign}<span class="pill ${t.done ? 'done' : ''}">${t.done ? 'Done' : 'Open'}</span>${del}</span>
+  </div>`;
+}
+function taskRows(device){
+  const f = can('filter') ? ui[device].filter : 'all';
+  const tasks = state.tasks.filter(t => f === 'all' || (f === 'done') === t.done);
+  if (!state.tasks.length) return `<div class="empty">No tasks yet.${can('add') ? ' Add your first one above.' : ''}</div>`;
+  if (!tasks.length) return `<div class="empty">Nothing ${f} right now.</div>`;
+  return tasks.map(t => taskRow(device, t)).join('');
+}
+function addForm(device){
+  if (!can('add')) return '';
+  return `<form class="stack" onsubmit="addTask('${device}', this.t.value); return false">
+    <input name="t" placeholder="What needs doing?" aria-label="New task"><button class="btn">Add</button></form>`;
+}
+function filterBar(device){
+  if (!can('filter')) return '';
+  const n = { all: state.tasks.length, open: state.tasks.filter(t => !t.done).length, done: state.tasks.filter(t => t.done).length };
+  return `<div class="seg filters" role="group" aria-label="Filter">${['all', 'open', 'done'].map(f =>
+    `<button class="${ui[device].filter === f ? 'active' : ''}" aria-pressed="${ui[device].filter === f}" onclick="setFilter('${device}','${f}')">${f[0].toUpperCase() + f.slice(1)} · ${n[f]}</button>`).join('')}</div>`;
+}
+
+function renderWeb(){
+  setWebUrl('tasks', 'Tasks');
+  document.getElementById('web-app').innerHTML = `
+    <nav class="sidebar"><div class="logo">Product</div><button class="active">Tasks</button></nav>
+    <section class="main"><h1>Tasks</h1>${addForm('web')}${filterBar('web')}${taskRows('web')}</section>`;
+}
+function renderApp(device){
+  document.getElementById(device + '-app').innerHTML = `
+    <div class="app-bar"><h1>Tasks</h1></div>
+    <div class="list">${addForm(device)}${filterBar(device)}${taskRows(device)}</div>`;
+}
+
+// Handlers re-check the gate so nothing works outside its story.
+function addTask(device, title){
+  if (!can('add') || !title.trim()) return;
+  state.tasks.unshift({ id: 't' + Date.now(), title: title.trim(), done: false, who: null });
+  renderAll(); toast(device, 'Task added');
+}
+function toggleTask(device, id){
+  if (!can('complete')) return;
+  const t = state.tasks.find(x => x.id === id); t.done = !t.done;
+  renderAll(); toast(device, t.done ? 'Marked done' : 'Reopened');
+}
+function setFilter(device, f){
+  if (!can('filter')) return;
+  ui[device].filter = f; render(device);
+}
+function askDelete(device, id){
+  if (!can('delete')) return;
+  ui[device].confirmDelete = id; render(device);
+}
+function deleteTask(device, id){
+  if (!can('delete')) return;
+  state.tasks = state.tasks.filter(t => t.id !== id); ui[device].confirmDelete = null;
+  renderAll(); toast(device, 'Task deleted');
+}
+function assignTask(device, id, who){
+  if (!can('assign')) return;
+  const t = state.tasks.find(x => x.id === id); t.who = who || null;
+  renderAll(); toast(device, who ? `Assigned to ${PEOPLE[who]}` : 'Unassigned');
+}
+
+/* =================== SHELL (normally leave as is) =================== */
+function render(device){ device === 'web' ? renderWeb() : renderApp(device); }
+function renderAll(){ Object.keys(DEVICES).forEach(render); }
+function setWebUrl(path, title){
+  document.getElementById('web-url').textContent = 'example.com/' + path;
+  document.getElementById('web-tab-title').textContent = title ? `Product — ${title}` : 'Product';
+}
+function toast(device, msg){
+  const host = device === 'web' ? document.getElementById('web-app') : document.querySelector(`#${device}-view .screen`);
+  const el = Object.assign(document.createElement('div'), { className: 'toast', textContent: msg });
+  host.appendChild(el); setTimeout(() => el.remove(), 2400);
+}
+
+function allowedDevices(){ return currentStory ? currentStory.devices : Object.keys(DEVICES); }
+
+function renderSwitchers(){
+  const allowed = allowedDevices();
+  document.getElementById('device-seg').innerHTML = Object.entries(DEVICES).map(([id, label]) =>
+    `<button class="${id === currentDevice ? 'active' : ''}" ${allowed.includes(id) ? '' : 'disabled title="Not part of this story"'}
+      aria-pressed="${id === currentDevice}" onclick="switchDevice('${id}')">${label}</button>`).join('');
+  document.getElementById('story-select').innerHTML =
+    `<option value="">All stories</option>` +
+    STORIES.map(s => `<option value="${s.id}" ${currentStory && currentStory.id === s.id ? 'selected' : ''}>${s.id} · ${esc(s.title)}</option>`).join('');
+}
+
+function renderStoryPanel(){
+  const p = document.getElementById('story-panel');
+  if (!currentStory) { p.hidden = true; return; }
+  const s = currentStory;
+  p.hidden = false;
+  // Bold the Given/When/Then keywords so the structure of each AC reads at a glance.
+  const gwt = t => esc(t).replace(/\b(given|when|then)\b/gi, '<b>$1</b>');
+  const list = (label, items) => items.length ? `<div class="caps">${label}</div><ul>${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  p.innerHTML = `
+    <div class="caps">${s.id} · ${s.devices.map(d => DEVICES[d]).join(' · ')}</div>
+    <div class="caps" style="margin-top:4px">Turns on: ${s.features.join(', ') || 'nothing'}</div>
+    <h2>${esc(s.title)}</h2>
+    <div class="tags"><span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span></div>
+    <p>${esc(s.story)}</p>
+    <div class="caps">Acceptance criteria</div>
+    ${s.ac.length ? `<ul class="acs">${s.ac.map(a => `<li><span class="ac-id mono">${a.id}</span>${gwt(a.text)}</li>`).join('')}</ul>` : '<p class="hint">None yet.</p>'}
+    ${s.walkthrough.length ? `<div class="caps">Walkthrough</div><ol>${s.walkthrough.map(x => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+    ${list('Out of scope', s.outOfScope)}${list('Assumptions', s.assumptions)}${list('Open questions', s.questions)}
+    <button class="restart" onclick="selectStory('${s.id}')">Restart story</button>`;
+}
+
+function showDevice(device){
+  Object.keys(DEVICES).forEach(d => {
+    const el = document.getElementById(d + '-view');
+    el.classList.toggle('hidden', d !== device);
+  });
+  const el = document.getElementById(device + '-view');
+  el.classList.add('fading');
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('fading')));
+}
+
+function switchDevice(device){
+  if (!allowedDevices().includes(device)) return;
+  currentDevice = device;
+  showDevice(device); renderSwitchers(); writeHash();
+}
+
+function selectStory(id){
+  currentStory = STORIES.find(s => s.id === id) || null;
+  state = currentStory ? currentStory.seed() : DEFAULT_SEED();
+  resetUi(currentStory);
+  if (!allowedDevices().includes(currentDevice)) currentDevice = allowedDevices()[0];
+  renderAll(); renderSwitchers(); renderStoryPanel(); showDevice(currentDevice); writeHash();
+}
+
+/* Deep links: #story=S2&device=iphone */
+function writeHash(){
+  const h = new URLSearchParams({ device: currentDevice });
+  if (currentStory) h.set('story', currentStory.id);
+  history.replaceState(null, '', '#' + h);
+}
+function readHash(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (DEVICES[h.get('device')]) currentDevice = h.get('device');
+  const id = h.get('story') || '';
+  // A split story (S3 → S3.1, S3.2) sends old links to its first child.
+  const story = STORIES.find(s => s.id === id) || (id && STORIES.find(s => s.id.startsWith(id + '.')));
+  selectStory(story ? story.id : '');
+}
+window.addEventListener('hashchange', readHash);
+
+/* Hide frames for devices not listed in DEVICES */
+document.querySelectorAll('.view').forEach(v => { if (!DEVICES[v.id.replace('-view', '')]) v.remove(); });
+readHash();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "design-by-story",
+  "description": "Clickable HTML prototypes broken down by user story.",
+  "owner": {
+    "name": "rinkledink",
+    "url": "https://github.com/rinkledink"
+  },
+  "plugins": [
+    {
+      "name": "design-by-story",
+      "description": "Builds a single-file HTML prototype with a device switcher and a story switcher.",
+      "source": "./",
+      "category": "design"
+    }
+  ]
+}

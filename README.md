@@ -21,14 +21,23 @@ The prototype shows stories but never edits them. To add, change or split a stor
 
 ## Install
 
+In Claude Code:
+
+```
+/plugin install design-by-story --marketplace rinkledink/design-by-story-skill
+```
+
+Or copy the skill in by hand:
+
 ```sh
-cp -r design-by-story ~/.claude/skills/
+cp -r skills/design-by-story ~/.claude/skills/
 ```
 
 Then ask Claude for a prototype, e.g. *"Prototype my app by story — here are the stories…"*.
 
 ## Contents
 
-- `design-by-story/SKILL.md`: workflow, story format, AC rules and how to split stories
-- `design-by-story/references/prototype-spec.md`: frames, tokens, type, components
-- `design-by-story/assets/shell.html`: working template with five example stories (open it to try)
+- `skills/design-by-story/SKILL.md`: workflow, story format, AC rules and how to split stories
+- `skills/design-by-story/references/prototype-spec.md`: frames, tokens, type, components
+- `skills/design-by-story/assets/shell.html`: working template with five example stories (open it to try)
+- `.claude-plugin/`: plugin and marketplace manifests

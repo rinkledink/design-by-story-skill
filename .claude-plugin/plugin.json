@@ -1,0 +1,13 @@
+{
+  "name": "design-by-story",
+  "version": "1.0.0",
+  "description": "Builds a single-file, clickable HTML prototype viewable on several devices and broken down by user story, with acceptance criteria alongside.",
+  "author": {
+    "name": "rinkledink",
+    "url": "https://github.com/rinkledink"
+  },
+  "homepage": "https://github.com/rinkledink/design-by-story-skill",
+  "repository": "https://github.com/rinkledink/design-by-story-skill",
+  "license": "MIT",
+  "keywords": ["prototype", "user-stories", "acceptance-criteria", "design"]
+}

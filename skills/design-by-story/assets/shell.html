@@ -57,7 +57,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .story-panel .restart{border:1px solid var(--line-strong);background:var(--surface-2);border-radius:9px;padding:7px 12px;width:100%}
 
 /* Browser frame */
-.browser{width:100%;background:var(--surface);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;border:1px solid var(--line)}
+.browser{width:100%;background:var(--surface);border-radius:12px;box-shadow:var(--shadow-lg);overflow:clip;border:1px solid var(--line)} /* clip, not hidden: hidden breaks position:sticky inside the page */
 .browser-bar{background:#ECE7E1;padding:8px 10px 0}
 .tab{display:inline-flex;gap:8px;align-items:center;background:var(--surface);border-radius:8px 8px 0 0;padding:7px 14px;font-size:12px;max-width:260px}
 .omni{display:flex;align-items:center;gap:12px;background:var(--surface);padding:8px 10px;border-bottom:1px solid var(--line)}
@@ -88,6 +88,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* Toast (rendered inside the active frame) */
 .toast{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-md);z-index:20;white-space:nowrap}
+#web-app .toast{position:fixed;bottom:96px} /* the web page can be taller than the screen; keep toasts in view */
+/* Confirm dialogs: put .overlay inside the frame's app root; the sticky .dialog stays in view however far the page is scrolled. */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:30}
+.dialog{position:sticky;top:30vh;margin:0 auto;width:min(440px,90%);background:var(--surface);border-radius:12px;box-shadow:var(--shadow-lg);padding:20px}
 
 /* ============ PRODUCT UI — replace the example below ============ */
 .sidebar{width:240px;flex:0 0 240px;background:var(--ink);color:#EDE7E0;padding:18px 12px}
@@ -141,7 +145,7 @@ button{font:inherit;color:inherit;cursor:pointer}
           <div class="navbtns"><button aria-label="Back">‹</button><button aria-label="Forward">›</button><button aria-label="Home">⌂</button></div>
           <div class="address mono">🔒 <span id="web-url">example.com/</span></div>
         </div>
-        <div class="web-app" id="web-app"></div>
+        <div class="web-app" id="web-app" style="position:relative"></div>
       </div>
     </div>
 
@@ -416,7 +420,10 @@ const BEHAVIOUR = {
 };
 
 const STORY_TEXT = JSON.parse(document.getElementById('story-text').textContent);
-const TEXT_DEFAULTS = { priority: 'should', status: 'draft', walkthrough: [], ac: [], outOfScope: [], assumptions: [], questions: [] };
+const TEXT_DEFAULTS = { priority: 'should', status: 'draft', points: null, tracker: null, walkthrough: [], ac: [], outOfScope: [], assumptions: [], questions: [] };
+/* Optional: link each story to its tracker item. {id} is replaced by the story's "tracker" value. Leave '' if there's no tracker. */
+const TRACKER_URL = '';   // e.g. 'https://dev.azure.com/org/Project/_workitems/edit/{id}' or 'https://org.atlassian.net/browse/{id}'
+const TRACKER_LABEL = 'Ticket';
 let STORIES = [], ALL_FEATURES = new Set();
 function buildStories(){
   STORIES = Object.entries(STORY_TEXT)
@@ -525,7 +532,12 @@ function assignTask(device, id, who){
 }
 
 /* =================== SHELL (normally leave as is) =================== */
-function render(device){ device === 'web' ? renderWeb() : renderApp(device); }
+const rendering = {};
+function render(device){
+  if (rendering[device]){ setTimeout(() => render(device), 0); return; }   // blur during innerHTML can fire change → render
+  rendering[device] = true;
+  try { device === 'web' ? renderWeb() : renderApp(device); } finally { rendering[device] = false; }
+}
 function renderAll(){ Object.keys(DEVICES).forEach(render); }
 function setWebUrl(path, title){
   document.getElementById('web-url').textContent = 'example.com/' + path;
@@ -555,13 +567,13 @@ function renderStoryPanel(){
   const s = currentStory;
   p.hidden = false;
   // Bold the Given/When/Then keywords so the structure of each AC reads at a glance.
-  const gwt = t => esc(t).replace(/\b(given|when|then)\b/gi, '<b>$1</b>');
+  const gwt = t => esc(t).replace(/^given\b/i, '<b>$&</b>').replace(/, when\b/i, ', <b>when</b>').replace(/, then\b/i, ', <b>then</b>');
   const list = (label, items) => items.length ? `<div class="caps">${label}</div><ul>${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
   p.innerHTML = `
-    <div class="caps">${s.id} · ${s.devices.map(d => DEVICES[d]).join(' · ')}</div>
+    <div class="caps">${s.id} · ${s.devices.map(d => DEVICES[d]).join(' · ')}${s.tracker ? ` · ${TRACKER_URL ? `<a class="caps" href="${esc(TRACKER_URL.replace('{id}', s.tracker))}" target="_blank" rel="noopener">${TRACKER_LABEL} ${esc(s.tracker)}</a>` : `${TRACKER_LABEL} ${esc(s.tracker)}`}` : ''}</div>
     <div class="caps" style="margin-top:4px">Turns on: ${s.features.join(', ') || 'nothing'}</div>
     <h2>${esc(s.title)}</h2>
-    <div class="tags"><span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span></div>
+    <div class="tags"><span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span>${s.points != null ? `<span class="tag" style="text-transform:none">${s.points} pts</span>` : ''}</div>
     <p>${esc(s.story)}</p>
     <div class="caps">Acceptance criteria</div>
     ${s.ac.length ? `<ul class="acs">${s.ac.map(a => `<li><span class="ac-id mono">${a.id}</span>${gwt(a.text)}</li>`).join('')}</ul>` : '<p class="hint">None yet.</p>'}
@@ -594,16 +606,31 @@ function selectStory(id){
   renderAll(); renderSwitchers(); renderStoryPanel(); showDevice(currentDevice); writeHash();
 }
 
-/* Deep links: #story=S2&device=iphone */
+/* Deep links. 'params' writes #story=S2&device=iphone.
+   'plain' writes #story-S2 or #story-S2--iphone, for hosts that only keep plain #name hashes
+   (letters, digits, hyphens). Dots in split ids become underscores: S3.1 → #story-S3_1.
+   readHash accepts both formats either way, so old links keep working. */
+const HASH_STYLE = 'params';
 function writeHash(){
-  const h = new URLSearchParams({ device: currentDevice });
-  if (currentStory) h.set('story', currentStory.id);
-  history.replaceState(null, '', '#' + h);
+  let h;
+  if (HASH_STYLE === 'plain'){
+    const multi = Object.keys(DEVICES).length > 1;
+    h = currentStory ? `story-${currentStory.id.replace(/\./g, '_')}${multi ? '--' + currentDevice : ''}` : (multi ? `device-${currentDevice}` : '');
+  } else {
+    const q = new URLSearchParams({ device: currentDevice });
+    if (currentStory) q.set('story', currentStory.id);
+    h = String(q);
+  }
+  if (location.hash.slice(1) !== h) history.replaceState(null, '', h ? '#' + h : location.pathname + location.search);
 }
 function readHash(){
-  const h = new URLSearchParams(location.hash.slice(1));
-  if (DEVICES[h.get('device')]) currentDevice = h.get('device');
-  const id = h.get('story') || '';
+  const raw = location.hash.slice(1);
+  let id = '', dev = null;
+  const plain = /^story-([A-Za-z0-9_]+)(?:--([a-z]+))?$/.exec(raw) || /^device-([a-z]+)$/.exec(raw);
+  if (plain && raw.startsWith('story-')){ id = plain[1].replace(/_/g, '.'); dev = plain[2]; }
+  else if (plain){ dev = plain[1]; }
+  else { const q = new URLSearchParams(raw); id = q.get('story') || ''; dev = q.get('device'); }
+  if (DEVICES[dev]) currentDevice = dev;
   // A split story (S3 → S3.1, S3.2) sends old links to its first child.
   const story = STORIES.find(s => s.id === id) || (id && STORIES.find(s => s.id.startsWith(id + '.')));
   selectStory(story ? story.id : '');

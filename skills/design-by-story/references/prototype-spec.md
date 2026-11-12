@@ -3,10 +3,17 @@
 The shell (`assets/shell.html`) already implements the frames, switchers and story
 panel. This file covers how the product inside the frames should look and behave.
 
+**If the user has designs, they win.** Match their layout, type, colours, controls and
+copy, and use this file only for what the designs don't cover and for the prototype's
+own controls (switchers, story panel).
+
 ## Non-goals
 
-- No backend, API calls, routing library, build tooling or component framework.
-- No real auth, no loading skeletons, no error states beyond friendly empty states.
+- No real backend, API calls, routing library, build tooling or component framework.
+- No real auth.
+- Loading, paging and error states only when a story's ACs need them. Then simulate
+  them in memory with a short timeout (300–500 ms) and show them plainly (a spinner
+  and a line of copy, or a "Loading more…" row).
 - Target desktop viewing at ~1440px; the page itself needn't be responsive.
 
 ## Frames
@@ -37,6 +44,7 @@ keep neutrals warm (off-white bg reads more considered than pure white).
 
 ## Typography
 
+For products without a design. If the user has designs, use their type instead.
 Three Google Fonts, each with one job:
 
 - **Fraunces** (400–600) — page titles, hero numbers, big stats.
@@ -66,7 +74,10 @@ Three Google Fonts, each with one job:
 - **Avatar stacks** — 26px initials circles, `margin-left:-6px`, white ring,
   `+N` chip after 3–4, full name in `title`.
 - **Toasts** — bottom-centre, after any create/edit/assign, auto-dismiss ~2.4s.
-  Toast inside the active frame, not the page.
+  Toast inside the active frame, not the page (web toasts are fixed to the visible
+  screen because the page can be longer than it).
+- **Inert controls** — controls a design shows but no story covers are rendered and,
+  when clicked, show a toast such as "Not part of this prototype".
 - **Drawers** — right-side, ~420px, slide in over a dim backdrop (website only).
 - **Bottom sheets** — the app equivalent of drawers.
 - **Popovers** — anchored pickers; close on outside `mousedown` (not `click`,
@@ -92,6 +103,35 @@ one `I` object (`I.search`, `I.plus`, `I.chev`) and interpolate into templates.
 Real, human, direct. Short labels. Empty states get a friendly one-liner. Help
 text is concrete ("The days you'll be on site", not "Date range for this record").
 All sample data is invented.
+
+## Forms and inputs
+
+- Show times the way the design does. Native `<input type="time">` follows the
+  browser's locale and may show 12-hour time; when the design shows 24-hour time,
+  use a text input that accepts `HH:MM` and validate it.
+- A native date picker can sit invisibly over a button that shows the date in the
+  design's format (`19 Nov 2026`); call `showPicker()` on click.
+- When editing applies as you type, apply on `change` (not `input`) and keep the
+  invalid draft on screen with the error under it, leaving the saved value untouched.
+
+## Technical gotchas
+
+- **Sticky inside the web frame:** the browser frame uses `overflow: clip`, not
+  `hidden`; `hidden` makes the frame the scroll container and breaks `position:sticky`
+  footers and headers.
+- **Redraws from blur:** replacing `innerHTML` while an input has focus can fire its
+  `change` event during the redraw. The shell's `render()` guards against starting a
+  second redraw inside the first; keep handlers idempotent (mark a committed input
+  with a data flag).
+- **Keep focus when redrawing** live-filtered inputs: note the focused element's id
+  and caret before `innerHTML`, and restore both after.
+- **Long web pages:** toasts are fixed to the visible screen, and confirm dialogs use
+  `.overlay` + sticky `.dialog` from the shell so they stay in view when the page is
+  scrolled.
+- **Infinite scroll:** render a sentinel row after the loaded rows and watch it with an
+  `IntersectionObserver`; re-create the observer after each redraw.
+- **Hosted prototypes:** some hosts only keep plain `#name` hashes. Set
+  `HASH_STYLE = 'plain'` in the shell; links then look like `#story-S3--iphone`.
 
 ## Accessibility basics
 

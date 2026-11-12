@@ -95,7 +95,7 @@ const BEHAVIOUR = {
   S1: {
     devices: ['web', 'android', 'iphone'],         // which frames this story applies to
     start: { web: 'search', android: 'search', iphone: 'search' }, // screen per device
-    features: ['save-search'],                      // what this story (and earlier ones it needs) switch on
+    features: ['save-search'],                      // this story's features plus every earlier story's
     seed: () => ({ user: SIGNED_IN, saved: [] }),  // fresh data for this story
   },
 };
@@ -187,7 +187,8 @@ Every interaction a story introduces gets a feature key, listed in that story's
   nothing fires outside the story, even from a stale DOM or the console.
 - **"All stories"** turns on every story's features at once: the whole product as it
   stands, on `DEFAULT_SEED`. Check that stories don't clash there.
-- A story that depends on another story's interaction lists both keys.
+- Because stories build up, each story lists its own feature keys plus every earlier
+  story's (S3 in the shell lists `['add', 'complete', 'filter']`).
 
 ## Several data cases in one story
 

@@ -9,15 +9,26 @@ Pick a device and a story from the top bar. The prototype then:
 
 - resets to that story's data;
 - opens each device on the story's start screen;
-- shows the story alongside: priority, status, acceptance criteria (with IDs, in
-  Given/When/Then), a walkthrough and notes.
+- shows the story alongside: priority, status, story points, tracker ticket, acceptance
+  criteria (with IDs, in Given/When/Then), a walkthrough and notes.
 
-A story's features only work while that story is selected; "All stories" turns them all on.
+Stories build up in the order they'll be built: each story shows only what it and the
+stories before it add, so reviewers never see a later story's controls, labels or
+screens early. "All stories" shows the whole product.
+
 Links like `prototype.html#story=S2&device=iphone` open straight to a story on a device.
+For hosts that only keep plain `#name` links, the shell can write `#story-S2--iphone`
+instead.
 
 ![The same prototype in the iPhone frame, with a different story selected](docs/screenshot-iphone.png)
 
-The prototype shows stories but never edits them. To add, change or split a story, ask Claude.
+The prototype shows stories but never edits them. To add, change, move or split a
+story, ask Claude. Claude can also:
+
+- read stories from a tracker (Jira, Azure DevOps or similar) and, with your go-ahead,
+  write changes back, with a link to each story in the prototype;
+- match your existing designs (screenshots, Figma frames or a design system) instead
+  of its own default look.
 
 ## Install
 

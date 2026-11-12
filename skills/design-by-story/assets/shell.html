@@ -193,6 +193,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     "story": "As an organiser, I can add a task, so that nothing gets forgotten.",
     "priority": "must",
     "status": "agreed",
+    "points": 2,
+    "tracker": "TASK-101",
     "walkthrough": [
       "Start with an empty list",
       "Type a task and press Add",
@@ -205,7 +207,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       },
       {
         "id": "S1-AC2",
-        "text": "Given I typed \"Book a photographer\", when I press Add, then it appears at the top of the list as Open"
+        "text": "Given I typed \"Book a photographer\", when I press Add, then it appears at the top of the list"
       },
       {
         "id": "S1-AC3",
@@ -228,6 +230,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     "story": "As an organiser, I can tick off a task, so that I can see what still needs doing before the event.",
     "priority": "must",
     "status": "agreed",
+    "points": 1,
+    "tracker": "TASK-102",
     "walkthrough": [
       "Tap the circle on an open task",
       "See it marked Done",
@@ -249,7 +253,9 @@ button{font:inherit;color:inherit;cursor:pointer}
     ],
     "acNext": 3,
     "outOfScope": [],
-    "assumptions": [],
+    "assumptions": [
+      "Builds on S1"
+    ],
     "questions": []
   },
   "S3": {
@@ -257,6 +263,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     "story": "As an organiser, I can show only open or done tasks, so that I can see what still needs doing without finished work in the way.",
     "priority": "could",
     "status": "in review",
+    "points": 3,
+    "tracker": "TASK-103",
     "walkthrough": [
       "Choose Open",
       "Only open tasks show",
@@ -283,7 +291,9 @@ button{font:inherit;color:inherit;cursor:pointer}
     ],
     "acNext": 4,
     "outOfScope": [],
-    "assumptions": [],
+    "assumptions": [
+      "Builds on S1–S2"
+    ],
     "questions": [
       "Should the chosen filter be remembered next time?"
     ]
@@ -293,6 +303,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     "story": "As an organiser, I can delete a task I no longer need, so that cancelled work doesn't look outstanding.",
     "priority": "should",
     "status": "in review",
+    "points": 2,
+    "tracker": "TASK-104",
     "walkthrough": [
       "Press ✕ on a task",
       "Confirm with Delete",
@@ -316,16 +328,17 @@ button{font:inherit;color:inherit;cursor:pointer}
     "outOfScope": [
       "Undo after deleting"
     ],
-    "assumptions": [],
-    "questions": [
-      "If a deleted task was assigned to someone, are they told?"
-    ]
+    "assumptions": [
+      "Builds on S1–S3"
+    ],
+    "questions": []
   },
   "S5": {
     "title": "Assign a task",
     "story": "As an organiser, I can assign a task to a teammate, so that everyone knows who owns it.",
     "priority": "should",
     "status": "draft",
+    "tracker": "TASK-105",
     "walkthrough": [
       "Pick a teammate from the menu on a task",
       "Their initials appear on the task",
@@ -348,10 +361,12 @@ button{font:inherit;color:inherit;cursor:pointer}
     "acNext": 3,
     "outOfScope": [],
     "assumptions": [
+      "Builds on S1–S4",
       "Only the organiser assigns tasks"
     ],
     "questions": [
-      "Can a task have more than one owner?"
+      "Can a task have more than one owner?",
+      "If an assigned task is deleted, is its owner told?"
     ]
   }
 }
@@ -384,8 +399,9 @@ const DEFAULT_SEED = () => ({
 // that returns fresh data, and the features it switches on.
 //
 // Features are OFF unless the selected story lists them: their controls are
-// not rendered and their handlers are no-ops (see can()). "All stories" turns
-// on every story's features: the whole product.
+// not rendered and their handlers are no-ops (see can()). Stories build up in
+// order, so each one lists its own features plus every earlier story's.
+// "All stories" turns on every story's features: the whole product.
 const BEHAVIOUR = {
   S1: {
     devices: ['web', 'android', 'iphone', 'ipad'],
@@ -396,25 +412,25 @@ const BEHAVIOUR = {
   S2: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['complete'],
+    features: ['add', 'complete'],
     seed: DEFAULT_SEED,
   },
   S3: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['filter', 'complete'],
+    features: ['add', 'complete', 'filter'],
     seed: DEFAULT_SEED,
   },
   S4: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['delete'],
+    features: ['add', 'complete', 'filter', 'delete'],
     seed: DEFAULT_SEED,
   },
   S5: {
     devices: ['web'],  // only exclusion: assigning work is a desk job, done by the organiser on the website
     start: { web: 'list' },
-    features: ['assign'],
+    features: ['add', 'complete', 'filter', 'delete', 'assign'],
     seed: () => ({ ...DEFAULT_SEED(), tasks: DEFAULT_SEED().tasks.map(t => ({ ...t, who: null })) }),
   },
 };
@@ -456,7 +472,7 @@ function taskRow(device, t){
   const ui_ = ui[device];
   const check = can('complete')
     ? `<button class="check ${t.done ? 'on' : ''}" aria-pressed="${t.done}" aria-label="Mark ${esc(t.title)} ${t.done ? 'open' : 'done'}" onclick="toggleTask('${device}','${t.id}')">✓</button>` : '';
-  const who = t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
+  const who = can('assign') && t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
   const assign = can('assign') && device === 'web'
     ? `<select aria-label="Assign ${esc(t.title)}" onchange="assignTask('${device}','${t.id}', this.value)">
         <option value="">Unassigned</option>${Object.entries(PEOPLE).map(([k, n]) => `<option value="${k}" ${t.who === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}
@@ -467,7 +483,7 @@ function taskRow(device, t){
       : `<button class="icon-btn" aria-label="Delete ${esc(t.title)}" onclick="askDelete('${device}','${t.id}')">✕</button>`;
   return `<div class="row ${t.done ? 'done' : ''}">
     <span class="l">${check}<span class="t">${esc(t.title)}</span></span>
-    <span class="r">${who}${assign}<span class="pill ${t.done ? 'done' : ''}">${t.done ? 'Done' : 'Open'}</span>${del}</span>
+    <span class="r">${who}${assign}${can('complete') ? `<span class="pill ${t.done ? 'done' : ''}">${t.done ? 'Done' : 'Open'}</span>` : ''}${del}</span>
   </div>`;
 }
 function taskRows(device){
@@ -573,7 +589,7 @@ function renderStoryPanel(){
     <div class="caps">${s.id} · ${s.devices.map(d => DEVICES[d]).join(' · ')}${s.tracker ? ` · ${TRACKER_URL ? `<a class="caps" href="${esc(TRACKER_URL.replace('{id}', s.tracker))}" target="_blank" rel="noopener">${TRACKER_LABEL} ${esc(s.tracker)}</a>` : `${TRACKER_LABEL} ${esc(s.tracker)}`}` : ''}</div>
     <div class="caps" style="margin-top:4px">Turns on: ${s.features.join(', ') || 'nothing'}</div>
     <h2>${esc(s.title)}</h2>
-    <div class="tags"><span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span>${s.points != null ? `<span class="tag" style="text-transform:none">${s.points} pts</span>` : ''}</div>
+    <div class="tags"><span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span>${s.points != null ? `<span class="tag" style="text-transform:none">${s.points} ${s.points === 1 ? 'pt' : 'pts'}</span>` : ''}</div>
     <p>${esc(s.story)}</p>
     <div class="caps">Acceptance criteria</div>
     ${s.ac.length ? `<ul class="acs">${s.ac.map(a => `<li><span class="ac-id mono">${a.id}</span>${gwt(a.text)}</li>`).join('')}</ul>` : '<p class="hint">None yet.</p>'}

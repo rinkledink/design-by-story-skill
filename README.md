@@ -9,11 +9,15 @@ Pick a device and a story from the top bar. The prototype then:
 
 - resets to that story's data;
 - opens each device on the story's start screen;
-- shows the story alongside: priority, status, story points, tracker ticket, acceptance
-  criteria (with IDs, in Given/When/Then), a walkthrough and notes.
+- shows the story alongside: priority, status, story points and tracker ticket (when
+  set), the story as *As a / I can / So that*, and its acceptance criteria grouped by
+  their shared **Given**, each with its ID and **When** / **Then** lines. A "Try it"
+  walkthrough and open questions follow; out of scope, assumptions and changes (ACs
+  removed, moved or split out) fold away.
 
-Stories build up in the order they'll be built: each story shows only what it and the
-stories before it add, so reviewers never see a later story's controls, labels or
+Stories build up in the order they'll be built: each story lists only what it adds, and
+the shell works out the rest from a single `BUILD_ORDER`. A story shows only what it and
+the stories before it add, so reviewers never see a later story's controls, labels or
 screens early. "All stories" shows the whole product.
 
 Links like `prototype.html#story=S2&device=iphone` open straight to a story on a device.
@@ -26,7 +30,8 @@ The prototype shows stories but never edits them. To add, change, move or split 
 story, ask Claude. Claude can also:
 
 - read stories from a tracker (Jira, Azure DevOps or similar) and, with your go-ahead,
-  write changes back, with a link to each story in the prototype;
+  write changes back (ACs in the same grouped Given / When / Then shape), with a link to
+  each story in the prototype;
 - match your existing designs (screenshots, Figma frames or a design system) instead
   of its own default look.
 
@@ -51,4 +56,5 @@ Then ask Claude for a prototype, e.g. *"Prototype my app by story — here are t
 - `skills/design-by-story/SKILL.md`: workflow, story format, AC rules and how to split stories
 - `skills/design-by-story/references/prototype-spec.md`: frames, tokens, type, components
 - `skills/design-by-story/assets/shell.html`: working template with five example stories (open it to try)
+- `skills/design-by-story/CHANGELOG.md`: what changed in each version
 - `.claude-plugin/`: plugin and marketplace manifests

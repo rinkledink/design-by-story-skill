@@ -484,7 +484,7 @@ function taskRow(device, t){
   const ui_ = ui[device];
   const check = can('complete')
     ? `<button class="check ${t.done ? 'on' : ''}" aria-pressed="${t.done}" aria-label="Mark ${esc(t.title)} ${t.done ? 'open' : 'done'}" onclick="toggleTask('${device}','${t.id}')">✓</button>` : '';
-  const who = t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
+  const who = can('assign') && t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
   const assign = can('assign') && device === 'web'
     ? `<select aria-label="Assign ${esc(t.title)}" onchange="assignTask('${device}','${t.id}', this.value)">
         <option value="">Unassigned</option>${Object.entries(PEOPLE).map(([k, n]) => `<option value="${k}" ${t.who === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}

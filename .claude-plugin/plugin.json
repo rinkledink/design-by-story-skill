@@ -1,6 +1,6 @@
 {
   "name": "design-by-story",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Builds a single-file, clickable HTML prototype viewable on several devices and broken down by user story, with acceptance criteria alongside.",
   "author": {
     "name": "rinkledink",

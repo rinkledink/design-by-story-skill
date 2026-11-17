@@ -133,6 +133,19 @@ All sample data is invented.
 - **Hosted prototypes:** some hosts only keep plain `#name` hashes. Set
   `HASH_STYLE = 'plain'` in the shell; links then look like `#story-S3--iphone`.
 
+## Story panel
+
+The panel is for scanning, not reading top to bottom:
+
+- Header line: story ID, tracker link, priority, status, points. Then the title, then
+  the story statement as three short rows (As a / I can / So that).
+- Acceptance criteria are the main content: one card per Given, with each AC's ID in
+  a narrow left column and **When** and **Then** on their own lines. Show the keywords
+  as small uppercase labels in the brand colour, in a fixed-width column.
+- "Try it" (the walkthrough) and "Open questions" are open by default. Out of scope,
+  Assumptions and Changes are folded, each with a count.
+- Devices, what the story adds and what it builds on go in a quiet line at the bottom.
+
 ## Accessibility basics
 
 Semantic buttons/links, visible focus, `aria-label` on icon-only buttons,

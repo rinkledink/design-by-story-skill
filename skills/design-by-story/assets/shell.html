@@ -122,6 +122,27 @@ button{font:inherit;color:inherit;cursor:pointer}
 .confirm button{border:0;background:none;font-weight:600;padding:2px 6px}
 .row select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
 .filters{margin:12px 0 4px}
+
+/* Story panel: built for scanning. ACs first, then Try it and Open questions; the rest folds away. */
+.story-panel .meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute)}
+.story-panel .meta a{color:var(--brand);text-decoration:none}.story-panel .meta a:hover{text-decoration:underline}
+.story-panel .meta .tag{font-size:10px;padding:1px 7px}
+.story-panel h2{margin:8px 0 10px}
+.sx{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13.5px}
+.sx dt{color:var(--ink-mute);font-size:12px;padding-top:1px;white-space:nowrap}.sx dd{margin:0}
+.acg{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;background:var(--surface-2)}
+.acg .given{font-size:13px;font-weight:500;margin-bottom:4px}
+.acg .kw{display:inline-block;min-width:40px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin-right:4px}
+.acg .ac{display:grid;grid-template-columns:52px 1fr;gap:6px;padding:5px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.4}
+.acg .given+.ac{border-top:0}
+.acg .ac .ac-id{margin:2px 0 0;font-size:10px}
+.acg .ln{display:flex;gap:2px}.acg .ln .kw{flex:0 0 40px;padding-top:2px}
+details.sec{border-top:1px solid var(--line);padding:8px 0}
+details.sec summary{cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);list-style:none}
+details.sec summary::-webkit-details-marker{display:none}
+details.sec summary::before{content:"▸ ";color:var(--ink-mute)}details.sec[open] summary::before{content:"▾ "}
+details.sec .n{font-weight:500;color:var(--ink-mute)}
+details.sec ul,details.sec ol{margin:6px 0 2px;font-size:13px}
 </style>
 </head>
 <body>
@@ -193,8 +214,6 @@ button{font:inherit;color:inherit;cursor:pointer}
     "story": "As an organiser, I can add a task, so that nothing gets forgotten.",
     "priority": "must",
     "status": "agreed",
-    "points": 2,
-    "tracker": "TASK-101",
     "walkthrough": [
       "Start with an empty list",
       "Type a task and press Add",
@@ -203,15 +222,15 @@ button{font:inherit;color:inherit;cursor:pointer}
     "ac": [
       {
         "id": "S1-AC1",
-        "text": "Given I have no tasks, when I open the list, then I see \"No tasks yet. Add your first one above.\""
+        "text": "Given no tasks, then the list shows “No tasks yet. Add your first one above.”"
       },
       {
         "id": "S1-AC2",
-        "text": "Given I typed \"Book a photographer\", when I press Add, then it appears at the top of the list"
+        "text": "Given a title, when I press Add, then it appears at the top as Open"
       },
       {
         "id": "S1-AC3",
-        "text": "Given the title is blank or only spaces, when I press Add, then nothing is added"
+        "text": "Given a blank title, when I press Add, then nothing is added"
       }
     ],
     "acNext": 3,
@@ -230,8 +249,6 @@ button{font:inherit;color:inherit;cursor:pointer}
     "story": "As an organiser, I can tick off a task, so that I can see what still needs doing before the event.",
     "priority": "must",
     "status": "agreed",
-    "points": 1,
-    "tracker": "TASK-102",
     "walkthrough": [
       "Tap the circle on an open task",
       "See it marked Done",
@@ -240,31 +257,26 @@ button{font:inherit;color:inherit;cursor:pointer}
     "ac": [
       {
         "id": "S2-AC1",
-        "text": "Given an open task, when I tick it, then it shows as Done and is struck through"
+        "text": "Given an open task, when I tick it, then it shows as Done and I see “Marked done”"
       },
       {
         "id": "S2-AC2",
-        "text": "Given a done task, when I tick it again, then it shows as Open"
-      },
-      {
-        "id": "S2-AC3",
-        "text": "Given any task, when I change its status, then a message confirms the new status"
+        "text": "Given a done task, when I tick it, then it shows as Open and I see “Reopened”"
       }
     ],
     "acNext": 3,
     "outOfScope": [],
-    "assumptions": [
-      "Builds on S1"
-    ],
-    "questions": []
+    "assumptions": [],
+    "questions": [],
+    "changes": [
+      "Removed S2-AC3: the messages are now part of AC1 and AC2"
+    ]
   },
   "S3": {
     "title": "Filter by status",
     "story": "As an organiser, I can show only open or done tasks, so that I can see what still needs doing without finished work in the way.",
     "priority": "could",
     "status": "in review",
-    "points": 3,
-    "tracker": "TASK-103",
     "walkthrough": [
       "Choose Open",
       "Only open tasks show",
@@ -274,37 +286,33 @@ button{font:inherit;color:inherit;cursor:pointer}
     "ac": [
       {
         "id": "S3-AC1",
-        "text": "Given tasks with both statuses, when I choose Open, then only open tasks show"
-      },
-      {
-        "id": "S3-AC2",
-        "text": "Given the Open filter is on, when I tick a task off, then it leaves the list"
-      },
-      {
-        "id": "S3-AC3",
-        "text": "Given no tasks match the filter, when I choose it, then I see \"Nothing open right now.\" or \"Nothing done right now.\""
+        "text": "Given tasks of both statuses, when I choose Open, then only open tasks show"
       },
       {
         "id": "S3-AC4",
-        "text": "Given the filter bar is showing, when a task's status changes, then the counts on All, Open and Done update"
+        "text": "Given tasks of both statuses, then All, Open and Done show how many tasks each has"
+      },
+      {
+        "id": "S3-AC2",
+        "text": "Given the Open filter, when I tick a task, then it leaves the list"
+      },
+      {
+        "id": "S3-AC3",
+        "text": "Given no tasks match the filter, then I see “Nothing open right now.” or “Nothing done right now.”"
       }
     ],
     "acNext": 4,
     "outOfScope": [],
-    "assumptions": [
-      "Builds on S1–S2"
-    ],
+    "assumptions": [],
     "questions": [
       "Should the chosen filter be remembered next time?"
     ]
   },
   "S4": {
     "title": "Delete a task",
-    "story": "As an organiser, I can delete a task I no longer need, so that cancelled work doesn't look outstanding.",
+    "story": "As an organiser, I can delete a task, so that cancelled work doesn’t look outstanding.",
     "priority": "should",
     "status": "in review",
-    "points": 2,
-    "tracker": "TASK-104",
     "walkthrough": [
       "Press ✕ on a task",
       "Confirm with Delete",
@@ -313,32 +321,31 @@ button{font:inherit;color:inherit;cursor:pointer}
     "ac": [
       {
         "id": "S4-AC1",
-        "text": "Given a task, when I press delete, then I'm asked to confirm before anything is removed"
+        "text": "Given a task, when I press ✕, then I’m asked to confirm"
       },
       {
         "id": "S4-AC2",
-        "text": "Given I'm asked to confirm, when I press Cancel, then the task is unchanged"
+        "text": "Given I’m asked to confirm, when I press Cancel, then nothing changes"
       },
       {
         "id": "S4-AC3",
-        "text": "Given I'm asked to confirm, when I press Delete, then the task is removed from the list"
+        "text": "Given I’m asked to confirm, when I press Delete, then the task is removed"
       }
     ],
     "acNext": 3,
     "outOfScope": [
       "Undo after deleting"
     ],
-    "assumptions": [
-      "Builds on S1–S3"
-    ],
-    "questions": []
+    "assumptions": [],
+    "questions": [
+      "If a deleted task was assigned to someone, are they told?"
+    ]
   },
   "S5": {
     "title": "Assign a task",
     "story": "As an organiser, I can assign a task to a teammate, so that everyone knows who owns it.",
     "priority": "should",
     "status": "draft",
-    "tracker": "TASK-105",
     "walkthrough": [
       "Pick a teammate from the menu on a task",
       "Their initials appear on the task",
@@ -347,26 +354,23 @@ button{font:inherit;color:inherit;cursor:pointer}
     "ac": [
       {
         "id": "S5-AC1",
-        "text": "Given an unassigned task, when I choose a teammate, then their initials show on the task"
+        "text": "Given a task, when I choose a teammate, then their initials show and I see “Assigned to <name>”"
       },
       {
         "id": "S5-AC2",
-        "text": "Given an assigned task, when I choose Unassigned, then the initials are removed"
-      },
-      {
-        "id": "S5-AC3",
-        "text": "Given any task, when I assign it, then a message names who it was assigned to"
+        "text": "Given an assigned task, when I choose Unassigned, then the initials go"
       }
     ],
     "acNext": 3,
     "outOfScope": [],
     "assumptions": [
-      "Builds on S1–S4",
       "Only the organiser assigns tasks"
     ],
     "questions": [
-      "Can a task have more than one owner?",
-      "If an assigned task is deleted, is its owner told?"
+      "Can a task have more than one owner?"
+    ],
+    "changes": [
+      "Removed S5-AC3: the message is now part of AC1"
     ]
   }
 }
@@ -399,44 +403,52 @@ const DEFAULT_SEED = () => ({
 // that returns fresh data, and the features it switches on.
 //
 // Features are OFF unless the selected story lists them: their controls are
-// not rendered and their handlers are no-ops (see can()). Stories build up in
-// order, so each one lists its own features plus every earlier story's.
-// "All stories" turns on every story's features: the whole product.
+// not rendered and their handlers are no-ops (see can()). "All stories" turns
+// on every story's features: the whole product.
 const BEHAVIOUR = {
   S1: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['add'],
+    adds: ['add'],
     seed: () => ({ ...DEFAULT_SEED(), tasks: [] }),
   },
   S2: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['add', 'complete'],
+    adds: ['complete'],
     seed: DEFAULT_SEED,
   },
   S3: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['add', 'complete', 'filter'],
+    adds: ['filter'],
     seed: DEFAULT_SEED,
   },
   S4: {
     devices: ['web', 'android', 'iphone', 'ipad'],
     start: { web: 'list', android: 'list', iphone: 'list', ipad: 'list' },
-    features: ['add', 'complete', 'filter', 'delete'],
+    adds: ['delete'],
     seed: DEFAULT_SEED,
   },
   S5: {
     devices: ['web'],  // only exclusion: assigning work is a desk job, done by the organiser on the website
     start: { web: 'list' },
-    features: ['add', 'complete', 'filter', 'delete', 'assign'],
+    adds: ['assign'],
     seed: () => ({ ...DEFAULT_SEED(), tasks: DEFAULT_SEED().tasks.map(t => ({ ...t, who: null })) }),
   },
 };
+/* Stories build up in order. Each story lists only what it adds; its full feature list is
+   everything it adds plus everything the stories before it in BUILD_ORDER added. */
+const BUILD_ORDER = ['S1', 'S2', 'S3', 'S4', 'S5'];
+BUILD_ORDER.forEach((id, i) => {
+  if (!BEHAVIOUR[id]) return console.error(`${id} is in BUILD_ORDER but has no BEHAVIOUR entry`);
+  BEHAVIOUR[id].features = [...new Set(BUILD_ORDER.slice(0, i + 1).flatMap(x => BEHAVIOUR[x]?.adds || []))];
+  BEHAVIOUR[id].buildsOn = i ? (i === 1 ? BUILD_ORDER[0] : `${BUILD_ORDER[0]}–${BUILD_ORDER[i - 1]}`) : '';
+});
+Object.keys(BEHAVIOUR).filter(id => !BUILD_ORDER.includes(id)).forEach(id => console.error(`${id} is missing from BUILD_ORDER`));
 
 const STORY_TEXT = JSON.parse(document.getElementById('story-text').textContent);
-const TEXT_DEFAULTS = { priority: 'should', status: 'draft', points: null, tracker: null, walkthrough: [], ac: [], outOfScope: [], assumptions: [], questions: [] };
+const TEXT_DEFAULTS = { priority: 'should', status: 'draft', points: null, tracker: null, changes: [], walkthrough: [], ac: [], outOfScope: [], assumptions: [], questions: [] };
 /* Optional: link each story to its tracker item. {id} is replaced by the story's "tracker" value. Leave '' if there's no tracker. */
 const TRACKER_URL = '';   // e.g. 'https://dev.azure.com/org/Project/_workitems/edit/{id}' or 'https://org.atlassian.net/browse/{id}'
 const TRACKER_LABEL = 'Ticket';
@@ -472,7 +484,7 @@ function taskRow(device, t){
   const ui_ = ui[device];
   const check = can('complete')
     ? `<button class="check ${t.done ? 'on' : ''}" aria-pressed="${t.done}" aria-label="Mark ${esc(t.title)} ${t.done ? 'open' : 'done'}" onclick="toggleTask('${device}','${t.id}')">✓</button>` : '';
-  const who = can('assign') && t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
+  const who = t.who ? `<span class="av" title="${esc(PEOPLE[t.who])}">${t.who}</span>` : '';
   const assign = can('assign') && device === 'web'
     ? `<select aria-label="Assign ${esc(t.title)}" onchange="assignTask('${device}','${t.id}', this.value)">
         <option value="">Unassigned</option>${Object.entries(PEOPLE).map(([k, n]) => `<option value="${k}" ${t.who === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}
@@ -483,7 +495,7 @@ function taskRow(device, t){
       : `<button class="icon-btn" aria-label="Delete ${esc(t.title)}" onclick="askDelete('${device}','${t.id}')">✕</button>`;
   return `<div class="row ${t.done ? 'done' : ''}">
     <span class="l">${check}<span class="t">${esc(t.title)}</span></span>
-    <span class="r">${who}${assign}${can('complete') ? `<span class="pill ${t.done ? 'done' : ''}">${t.done ? 'Done' : 'Open'}</span>` : ''}${del}</span>
+    <span class="r">${who}${assign}<span class="pill ${t.done ? 'done' : ''}">${t.done ? 'Done' : 'Open'}</span>${del}</span>
   </div>`;
 }
 function taskRows(device){
@@ -582,19 +594,30 @@ function renderStoryPanel(){
   if (!currentStory) { p.hidden = true; return; }
   const s = currentStory;
   p.hidden = false;
-  // Bold the Given/When/Then keywords so the structure of each AC reads at a glance.
-  const gwt = t => esc(t).replace(/^given\b/i, '<b>$&</b>').replace(/, when\b/i, ', <b>when</b>').replace(/, then\b/i, ', <b>then</b>');
-  const list = (label, items) => items.length ? `<div class="caps">${label}</div><ul>${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  /* Story statement on three lines: As a … / I can … / So that … */
+  const sm = /^As an? (.*?), I can (.*?), so that (.*?)\.?$/i.exec(s.story);
+  const story = sm ? `<dl class="sx"><dt>As a</dt><dd>${esc(sm[1])}</dd><dt>I can</dt><dd>${esc(sm[2])}</dd><dt>So that</dt><dd>${esc(sm[3])}</dd></dl>` : `<p>${esc(s.story)}</p>`;
+  /* ACs: one card per Given; each AC shows When and Then on their own lines.
+     The data keeps every AC as one sentence, so IDs and tracker text don't change. */
+  const parse = t => { const m = /^Given (.*?), (?:when (.*?), )?then (.*)$/i.exec(t); return m ? { given: m[1], when: m[2] || '', then: m[3] } : { given: '', when: '', then: t }; };
+  const groups = [];
+  s.ac.forEach(a => { const x = { id: a.id, ...parse(a.text) }; const g = groups.find(g => g.given === x.given);
+    g ? g.items.push(x) : groups.push({ given: x.given, items: [x] }); });
+  const line = (k, t) => t ? `<div class="ln"><span class="kw">${k}</span><span>${esc(t)}</span></div>` : '';
+  const acs = groups.map(g => `<div class="acg">${g.given ? `<div class="given"><span class="kw">Given</span>${esc(g.given)}</div>` : ''}
+      ${g.items.map(i => `<div class="ac"><span class="ac-id mono">${i.id}</span><div>${line('When', i.when)}${line('Then', i.then)}</div></div>`).join('')}</div>`).join('');
+  const sec = (label, items, open) => items.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${label} <span class="n">${items.length}</span></summary><ul>${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : '';
+  const tracker = s.tracker ? (TRACKER_URL ? `<a href="${esc(TRACKER_URL.replace('{id}', s.tracker))}" target="_blank" rel="noopener">${TRACKER_LABEL} ${esc(s.tracker)}</a>` : `<span>${TRACKER_LABEL} ${esc(s.tracker)}</span>`) : '';
   p.innerHTML = `
-    <div class="caps">${s.id} · ${s.devices.map(d => DEVICES[d]).join(' · ')}${s.tracker ? ` · ${TRACKER_URL ? `<a class="caps" href="${esc(TRACKER_URL.replace('{id}', s.tracker))}" target="_blank" rel="noopener">${TRACKER_LABEL} ${esc(s.tracker)}</a>` : `${TRACKER_LABEL} ${esc(s.tracker)}`}` : ''}</div>
-    <div class="caps" style="margin-top:4px">Turns on: ${s.features.join(', ') || 'nothing'}</div>
+    <div class="meta"><span class="mono">${s.id}</span>${tracker}
+      <span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span>${s.points != null ? `<span class="tag" style="text-transform:none">${s.points} pts</span>` : ''}</div>
     <h2>${esc(s.title)}</h2>
-    <div class="tags"><span class="tag pri-${s.priority.replace(/\W/g, '')}">${s.priority}</span><span class="tag">${s.status}</span>${s.points != null ? `<span class="tag" style="text-transform:none">${s.points} ${s.points === 1 ? 'pt' : 'pts'}</span>` : ''}</div>
-    <p>${esc(s.story)}</p>
-    <div class="caps">Acceptance criteria</div>
-    ${s.ac.length ? `<ul class="acs">${s.ac.map(a => `<li><span class="ac-id mono">${a.id}</span>${gwt(a.text)}</li>`).join('')}</ul>` : '<p class="hint">None yet.</p>'}
-    ${s.walkthrough.length ? `<div class="caps">Walkthrough</div><ol>${s.walkthrough.map(x => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
-    ${list('Out of scope', s.outOfScope)}${list('Assumptions', s.assumptions)}${list('Open questions', s.questions)}
+    ${story}
+    <div class="caps" style="margin:16px 0 8px">Acceptance criteria</div>
+    ${s.ac.length ? acs : '<p class="hint">None yet.</p>'}
+    ${s.walkthrough.length ? `<details class="sec" open><summary>Try it <span class="n">${s.walkthrough.length}</span></summary><ol>${s.walkthrough.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>` : ''}
+    ${sec('Open questions', s.questions, true)}${sec('Out of scope', s.outOfScope)}${sec('Assumptions', s.assumptions)}${sec('Changes', s.changes)}
+    <div class="hint" style="margin:14px 0 10px">${s.devices.map(d => DEVICES[d]).join(' · ')} · adds ${s.adds.join(', ') || 'nothing'}${s.buildsOn ? ` · builds on ${s.buildsOn}` : ''}</div>
     <button class="restart" onclick="selectStory('${s.id}')">Restart story</button>`;
 }
 
